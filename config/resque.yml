@@ -1,0 +1,2 @@
+development: <%= Rails.application.credentials.development[:redis][:host] %>:<%= Rails.application.credentials.development[:redis][:port] %>
+nightly: <%= Rails.application.credentials.nightly[:redis][:host] %>:<%= Rails.application.credentials.nightly[:redis][:port] %>
