@@ -33,10 +33,23 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
+  # Use a real queuing backend for Active Job (and separate queues per environment).
+	config.active_job.queue_adapter     = :resque
+
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = false
 
   config.action_mailer.perform_caching = false
+
+  config.action_controller.asset_host = Rails.application.credentials.development[:base_url]
+
+  # Use Mailhog SMTP server
+  config.action_mailer.default_url_options = { host: Rails.application.credentials.development[:smtp][:default_host], port: Rails.application.credentials.development[:smtp][:default_port] }
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: Rails.application.credentials.development[:smtp][:server_host],
+    port: Rails.application.credentials.development[:smtp][:server_port]
+  }
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
@@ -73,4 +86,18 @@ Rails.application.configure do
 
   # Uncomment if you wish to allow Action Cable access from any origin.
   # config.action_cable.disable_request_forgery_protection = true
+
+  # Configure Better errors
+  if defined?(BetterErrors)
+    # Allow all requests from Docker host
+    BetterErrors::Middleware.allow_ip! '0.0.0.0/0'
+    # Enable file opening in VS Code
+    BetterErrors.editor = proc { |full_path, line|
+      full_path = full_path.sub(Rails.root.to_s, ENV['DOCKER_HOST_PATH']) if ENV['DOCKER_HOST_PATH']
+      "vscode://file#{full_path}:#{line}"
+    }
+  end
+
+  config.hosts << /[a-z0-9]+\.ngrok\.io/
 end
+
